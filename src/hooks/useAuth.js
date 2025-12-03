@@ -39,10 +39,16 @@ function useAuth() {
     }
   };
 
+  // Logout function to clear user state
+  const logout = () => {
+    setUser(null);
+  };
+
   return {
     user,
     login,
     register,
+    logout,
   };
 }
 

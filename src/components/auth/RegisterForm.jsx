@@ -1,65 +1,237 @@
 import React, { useState } from 'react';
-// TODO: Import MUI components (Box, Button, TextField, Typography, Container, Paper)
-// import { ... } from '@mui/material';
-import { Box, Button, TextField, Typography, Container, Paper } from '@mui/material';
-
-// TODO: Import hooks (useAuth, useNavigate)
-// import useAuth from ...
 import useAuth from "../../hooks/useAuth";
-// import { useNavigate } from ...
 import { useNavigate } from 'react-router-dom';
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Paper,
+  InputAdornment,
+  IconButton,
+  Alert
+} from '@mui/material';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import KeyIcon from '@mui/icons-material/Key';
 
 const RegisterForm = () => {
   // TODO: Create state for email and password
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  // TODO: Get the register function from useAuth
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
   const {register} = useAuth();
-  // TODO: Get the navigate function
   const navigate = useNavigate();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    // TODO: Call register with email and password
-    // await register({ email, password });
-    await register({ email, password });
-    // TODO: Navigate to the login page ('/') after successful registration
-    navigate('/');
+    setError('');
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    // Call register logic from AuthContext
+    const result = await register({ email, password });
+
+    // Check if registration was successful
+    if (result && result.email) {
+      // Navigate to login page after successful registration
+      navigate('/');
+    } else {
+      console.log(result);
+      // display err message
+      setError("Registration failed. Please try again.");
+    }
   };
 
   return (
-    // TODO: Build the UI
-    // Hint: It is 90% similar to LoginForm!
-    // 1. Container, Paper, Typography ("Register")
-    // 2. Form Box
-    // 3. Email TextField
-    // 4. Password TextField
-    // 5. Submit Button ("Sign Up")
+    // <>
+    //   <Container component="main" maxWidth="xs">
+    //     <Paper elevation={3} sx={{ p: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+    //       <Typography component={"h1"} variant='h5'>
+    //         Register
+    //       </Typography>
 
-    // Challenge: Add a Button or Link below to switch to Login if they already have an account
-    <>
-      <Container component="main" maxWidth="xs">
-        <Paper elevation={3} sx={{ p: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <Typography component={"h1"} variant='h5'>
-            Register
-          </Typography>
+    //       <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
+    //         <TextField margin="normal" required fullWidth label="Email Address" autoFocus
+    //           value={email} onChange={(e) => setEmail(e.target.value)} />
+    //         <TextField margin="normal" required fullWidth label="Password" type="password"
+    //           value={password} onChange={(e) => setPassword(e.target.value)} />
+    //         <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
+    //           Sign Up
+    //         </Button>
+    //         <Button fullWidth variant="contained" sx={{ mt: 1, mb: 2 }} onClick={() => navigate("/")}>
+    //           Back to Login
+    //         </Button>
+    //       </Box>
+    //     </Paper>
+    //   </Container>
+    // </>
 
-          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
-            <TextField margin="normal" required fullWidth label="Email Address" autoFocus
-              value={email} onChange={(e) => setEmail(e.target.value)} />
-            <TextField margin="normal" required fullWidth label="Password" type="password"
-              value={password} onChange={(e) => setPassword(e.target.value)} />
-            <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
-              Sign Up
-            </Button>
-            <Button fullWidth variant="contained" sx={{ mt: 1, mb: 2 }} onClick={() => navigate("/")}>
-              Back to Login
-            </Button>
+    <Box
+      sx={{
+        height: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        bgcolor: 'background.default'
+      }}
+    >
+      <Box sx={{ width: '100%', maxWidth: 400, px: 4 }}>
+        {/* Header */}
+        <Box sx={{ textAlign: 'center', mb: 6 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 1 }}>
+            <LockOutlinedIcon sx={{ fontSize: 32 }} />
+            <Typography variant="h1" sx={{ fontSize: '40px', fontWeight: 400 }}>
+              Vaultogether
+            </Typography>
           </Box>
-        </Paper>
-      </Container>
+          <Typography variant="body2" color="text.secondary" sx={{ fontSize: '13px' }}>
+            Create your secure vault
+          </Typography>
+        </Box>
 
-    </>
+        {/* Error Alert */}
+        {error && (
+          <Alert severity="error" sx={{ mb: 3, borderRadius: 0 }}>
+            {error}
+          </Alert>
+        )}
+
+        {/* Form */}
+        <form onSubmit={handleSubmit}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+
+            <Box>
+              <Typography component="label" sx={{ display: 'block', mb: 1, fontSize: '15px' }}>
+                Email:
+              </Typography>
+              <TextField
+                fullWidth
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                variant="outlined"
+                autoFocus
+              />
+            </Box>
+
+            <Box>
+              <Typography component="label" sx={{ display: 'block', mb: 1, fontSize: '15px' }}>
+                Password:
+              </Typography>
+              <TextField
+                fullWidth
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                variant="outlined"
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label="toggle password visibility"
+                          onClick={() => setShowPassword(!showPassword)}
+                          edge="end"
+                        >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }
+                }}
+              />
+            </Box>
+
+            <Box>
+              <Typography component="label" sx={{ display: 'block', mb: 1, fontSize: '15px' }}>
+                Confirm Password:
+              </Typography>
+              <TextField
+                fullWidth
+                id="confirmPassword"
+                type={showPassword ? 'text' : 'password'}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                variant="outlined"
+              />
+            </Box>
+
+            <Box sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                color="secondary"
+                sx={{
+                  height: 44,
+                  fontSize: '15px',
+                  bgcolor: '#d9d9d9',
+                  '&:hover': { bgcolor: '#c5c5c5' }
+                }}
+              >
+                Register
+              </Button>
+
+              <Button
+                fullWidth
+                variant="outlined"
+                onClick={() => navigate("/")}
+                sx={{
+                  height: 44,
+                  fontSize: '15px',
+                  borderColor: '#d9d9d9',
+                  color: 'text.primary',
+                  '&:hover': { borderColor: '#000000', bgcolor: 'transparent' }
+                }}
+              >
+                Back to Login
+              </Button>
+            </Box>
+
+          </Box>
+        </form>
+
+        {/* Security Notice */}
+        <Paper
+          variant="outlined"
+          sx={{ mt: 4, p: 2, textAlign: 'center', bgcolor: 'transparent' }}
+        >
+          <Typography variant="caption" color="text.secondary" sx={{ fontSize: '11px', lineHeight: 1.6, display: 'block' }}>
+            🔒 Secured with Argon2id password hashing<br/>
+            🔐 AES-GCM encryption at rest<br/>
+            🛡️ JWT-based stateless authentication
+          </Typography>
+        </Paper>
+
+        {/* Password Generator Link */}
+        <Box sx={{ mt: 2, textAlign: 'center' }}>
+           <Button
+            startIcon={<KeyIcon />}
+            sx={{
+              fontSize: '13px',
+              color: 'text.secondary',
+              textDecoration: 'underline',
+              '&:hover': { textDecoration: 'underline', color: 'text.primary', bgcolor: 'transparent' }
+            }}
+          >
+            Generate secure password
+          </Button>
+        </Box>
+
+      </Box>
+    </Box>
   );
 };
 

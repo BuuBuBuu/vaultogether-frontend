@@ -5,29 +5,21 @@ import LoginForm from './components/auth/LoginForm'
 import DashboardPage from './pages/DashboardPage'
 import RegisterForm from './components/auth/RegisterForm'
 import VaultPage from './pages/VaultPage'
+import AuthProvider from './store/AuthContext'
+import VaultMembersPage from './pages/VaultMembersPage'
+import PasswordGeneratorPage from './pages/PasswordGeneratorPage'
 
 function App() {
   return (
-    // TODO: Set up the Router
-    // 1. Wrap everything in <BrowserRouter>
-    // 2. Inside that, create a <Routes> container
-    // 3. Define your individual <Route>s
 
-    // Example structure:
-    // <BrowserRouter>
-    //   <Routes>
-    //     {/* Route for the root path "/" should show LoginForm */}
-    //     {/* <Route path="/" element={<LoginForm />} /> */}
-    //   </Routes>
-    // </BrowserRouter>
-
-    // Remove this placeholder text when you are ready
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<LoginForm />} />
         <Route path="/register" element={<RegisterForm />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/vault/:id" element={<VaultPage />} />
+        <Route path="/vault/:id/members" element={<VaultMembersPage />} />
+        <Route path="/password-generator" element={<PasswordGeneratorPage />} />
       </Routes>
     </BrowserRouter>
   )

@@ -8,18 +8,24 @@ import VaultPage from './pages/VaultPage'
 import AuthProvider from './store/AuthContext'
 import VaultMembersPage from './pages/VaultMembersPage'
 import PasswordGeneratorPage from './pages/PasswordGeneratorPage'
+import ProtectedRoute from './routes/ProtectedRoute'
 
 function App() {
   return (
 
     <BrowserRouter>
       <Routes>
+        {/* Public Routes */}
         <Route path="/" element={<LoginForm />} />
         <Route path="/register" element={<RegisterForm />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/vault/:id" element={<VaultPage />} />
-        <Route path="/vault/:id/members" element={<VaultMembersPage />} />
         <Route path="/password-generator" element={<PasswordGeneratorPage />} />
+
+        {/* Protected routes */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/vault/:id" element={<VaultPage />} />
+          <Route path="/vault/:id/members" element={<VaultMembersPage />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   )

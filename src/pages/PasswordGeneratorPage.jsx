@@ -14,6 +14,7 @@ import {
   FormControlLabel,
   LinearProgress,
 } from '@mui/material';
+import AppBarHeader from '../components/AppBarHeader';
 
 // Icons
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -140,59 +141,14 @@ const PasswordGeneratorPage = () => {
 
   return (
     <Box sx={{ flexGrow: 1, minHeight: '100vh', bgcolor: '#ffffff' }}>
-      {/* Brutalist Header */}
-      <AppBar
-        position="static"
-        color="transparent"
-        elevation={0}
-        sx={{ borderBottom: '2px solid #d9d9d9' }}
+      {/* Use our own appbarheader component here */}
+      <AppBarHeader
+        title="Password Generator"
+        subtitle="Create cryptographically secure passwords"
+        onBack={handleBack}
       >
-        <Toolbar
-          sx={{
-            height: 80,
-            maxWidth: 'lg',
-            mx: 'auto',
-            width: '100%',
-            px: { xs: 2, md: 4 },
-          }}
-        >
-          <IconButton
-            onClick={handleBack}
-            sx={{
-              mr: 2,
-              color: 'text.primary',
-              '&:hover': { bgcolor: '#f5f5f5' },
-            }}
-          >
-            <ArrowBackIcon />
-          </IconButton>
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexGrow: 1 }}>
-            <LockOutlinedIcon sx={{ fontSize: 28 }} />
-            <Box>
-              <Typography
-                variant="h5"
-                sx={{
-                  fontWeight: 400,
-                  fontFamily: 'Fira Mono, monospace',
-                  lineHeight: 1.2,
-                }}
-              >
-                Password Generator
-              </Typography>
-              <Typography
-                variant="caption"
-                sx={{
-                  fontFamily: 'Fira Mono, monospace',
-                  color: 'text.secondary',
-                }}
-              >
-                Create cryptographically secure passwords
-              </Typography>
-            </Box>
-          </Box>
-        </Toolbar>
-      </AppBar>
+      </AppBarHeader>
 
       {/* Main Content */}
       <Container maxWidth="sm" sx={{ mt: 8, mb: 6 }}>

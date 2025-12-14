@@ -21,6 +21,7 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import KeyIcon from '@mui/icons-material/Key';
+import { getValidationErrorMessage } from '../../utils/errorHandler';
 
 const LoginForm = () => {
   // Form state management
@@ -39,19 +40,22 @@ const LoginForm = () => {
   const handleSubmit = async (event) => {
     // Stop the page refresh
     event.preventDefault();
+    setError('');
 
-    // Call the login function from useAuth with the email and password state
-    // doing call login directly without try catch here because AuthContext
-    // handles the try catch there
-    const result = await login({ email, password });
-
-    // check if result has userId (success) or is an error
-    if (result && result.userId) {
+    try {
+      // Call the login function from useAuth with the email and password state
+      // doing call login directly without try catch here because AuthContext
+      // handles the try catch there
+      await login({ email, password });
       navigate('/dashboard');
-    } else {
-      console.log(result);
-      // if result is an error object or null, show error
-      setError("Login failed. Please check your credentials");
+    } catch (error) {
+      // Check for validation errors
+      const validationMsg = getValidationErrorMessage(error);
+      if (validationMsg) {
+        setError(validationMsg);
+      } else {
+        setError("Login failed. Please try again.");
+      }
     }
   };
 

@@ -4,8 +4,6 @@ import {
   Typography,
   Box,
   Button,
-  AppBar,
-  Toolbar,
   Grid,
   Card,
   CardContent,
@@ -16,11 +14,13 @@ import {
   InputLabel,
   Input,
   FormControl,
+  Alert,
 } from "@mui/material";
 
 import useAuth from "../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { getVaultsByUser, createVault, deleteVault } from "../services/api";
+import AppBarHeader from "../components/AppBarHeader";
 
 // Icons
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
@@ -32,6 +32,7 @@ import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import SecurityIcon from "@mui/icons-material/Security";
 import CloseIcon from "@mui/icons-material/Close";
+import { getValidationErrorMessage } from "../utils/errorHandler";
 
 const DashboardPage = () => {
   // Initialize vaults to an empty array
@@ -42,8 +43,12 @@ const DashboardPage = () => {
   const [newVaultName, setNewVaultName] = useState("");
   // Create variable to house newVaultDesc
   const [newVaultDesc, setNewVaultDesc] = useState("");
+  // Create variable to hold error state
+  const [formError, setFormError] = useState("");
   // Call the useAuth custom hook so that we get the user data
   const { user, logout } = useAuth();
+  // Add search state
+  const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
 
   // useEffect to call the getVaultsByUser endpoint
@@ -65,6 +70,11 @@ const DashboardPage = () => {
     logout();
     navigate("/");
   };
+
+  // Filter vaults for search
+  const filteredVaults = searchQuery
+    ? vaults.filter(vault => vault.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    : vaults;
 
   // function to handle new vault creation
   const handleCreateVault = async (e) => {
@@ -99,7 +109,13 @@ const DashboardPage = () => {
       setNewVaultName("");
       setNewVaultDesc("");
     } catch (error) {
-      console.error("Create failed", error);
+      const validationMsg = getValidationErrorMessage(error);
+      if (validationMsg) {
+        setFormError(validationMsg);
+      } else {
+        console.error("Create failed", error);
+        setFormError("Failed to create vault. Please try again.");
+      }
     }
   };
 
@@ -119,49 +135,14 @@ const DashboardPage = () => {
 
   return (
     <Box sx={{ flexGrow: 1, minHeight: "100vh", bgcolor: "#ffffff" }}>
-      {/* Brutalist Header */}
-      <AppBar
-        position="static"
-        color="transparent"
-        elevation={0}
-        sx={{ borderBottom: "2px solid #d9d9d9" }}
-      >
-        <Toolbar
-          sx={{
-            height: 80,
-            maxWidth: "lg",
-            mx: "auto",
-            width: "100%",
-            px: { xs: 2, md: 4 },
-          }}
-        >
-          <Box
-            sx={{ display: "flex", alignItems: "center", gap: 2, flexGrow: 1 }}
-          >
-            <LockOutlinedIcon sx={{ fontSize: 32 }} />
-            <Box>
-              <Typography
-                variant="h5"
-                sx={{
-                  fontWeight: 400,
-                  fontFamily: "Fira Mono, monospace",
-                  lineHeight: 1.2,
-                }}
-              >
-                Vaultogether
-              </Typography>
-              <Typography
-                variant="caption"
-                sx={{
-                  fontFamily: "Fira Mono, monospace",
-                  color: "text.secondary",
-                }}
-              >
-                Your secure password vaults
-              </Typography>
-            </Box>
-          </Box>
-
+      {/* Use our own AppBarHeader component here! */}
+      <AppBarHeader
+        title="Vaultogether"
+        subtitle="Your secure password vaults"
+        searchValue={searchQuery}
+        onSearchChange={(e) => setSearchQuery(e.target.value)}
+        showSearch={true}
+        rightAction={
           <Button
             onClick={handleLogout}
             variant="outlined"
@@ -180,8 +161,10 @@ const DashboardPage = () => {
           >
             Logout
           </Button>
-        </Toolbar>
-      </AppBar>
+        }
+      >
+
+      </AppBarHeader>
 
       {/* Main Content */}
       <Container maxWidth="lg" sx={{ mt: 6, mb: 6 }}>
@@ -191,7 +174,10 @@ const DashboardPage = () => {
             <Button
               fullWidth
               variant="contained"
-              onClick={() => setShowCreateForm(true)}
+              onClick={() => {
+                setShowCreateForm(true);
+                setFormError('');
+              }}
               startIcon={<AddIcon />}
               sx={{
                 height: 50,
@@ -247,6 +233,21 @@ const DashboardPage = () => {
                 </Button>
               </Box>
 
+              {formError && (
+                <Alert
+                  severity="error"
+                  onClose={() => setFormError('')}
+                  sx={{
+                    mb: 3,
+                    borderRadius: 0,
+                    border: '2px solid #d32f2f',
+                    fontFamily: 'Fira Mono, monospace'
+                  }}
+                >
+                  {formError}
+                </Alert>
+              )}
+
               <Stack spacing={3}>
                 <Box>
                   <InputLabel
@@ -267,6 +268,10 @@ const DashboardPage = () => {
                     fullWidth
                     disableUnderline
                     autoFocus
+                    required
+                    inputProps={{
+                      maxLength: 100
+                    }}
                     placeholder="e.g., Personal, Work, Family"
                     sx={{
                       border: "2px solid #d9d9d9",
@@ -278,6 +283,17 @@ const DashboardPage = () => {
                       },
                     }}
                   />
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      fontFamily: 'Fira Mono, monospace',
+                      color: newVaultName.length > 100 ? 'error.main' : 'text.secondary',
+                      mt: 0.5,
+                      display: "block",
+                    }}
+                  >
+                    {newVaultName.length}/100 characters
+                  </Typography>
                 </Box>
 
                 {/* Description */}
@@ -299,6 +315,9 @@ const DashboardPage = () => {
                     onChange={(e) => setNewVaultDesc(e.target.value)}
                     fullWidth
                     disableUnderline
+                    inputProps={{
+                      maxLength: 255
+                    }}
                     placeholder="What's stored in this vault?"
                     sx={{
                       border: "2px solid #d9d9d9",
@@ -310,6 +329,17 @@ const DashboardPage = () => {
                       },
                     }}
                   />
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      fontFamily: 'Fira Mono, monospace',
+                      color: newVaultDesc.length > 100 ? 'error.main' : 'text.secondary',
+                      mt: 0.5,
+                      display: "block",
+                    }}
+                  >
+                    {newVaultDesc.length}/255 characters
+                  </Typography>
                 </Box>
 
                 <Button
@@ -362,8 +392,8 @@ const DashboardPage = () => {
             </Grid>
           )}
 
-          {vaults.map((vault) => (
-            <Grid size={{ xs: 12, md: 6}} key={vault.vaultId}>
+          {filteredVaults.map((vault) => (
+            <Grid size={{ xs: 12, md: 6 }} key={vault.vaultId}>
               <Card
                 sx={{
                   height: "100%",
@@ -433,7 +463,7 @@ const DashboardPage = () => {
                         }}
                       >
                         Created:{" "}
-                        {new Date(vault.createdAt).toLocaleDateString()}
+                        {new Date(vault.createdAt).toLocaleString()}
                       </Typography>
                     </Box>
 
@@ -464,7 +494,7 @@ const DashboardPage = () => {
                         variant="caption"
                         sx={{ fontFamily: "Fira Mono, monospace" }}
                       >
-                        {vault.itemCount ?? 0} {vault.itemCount === 1 ? 'item': "items"}
+                        {vault.itemCount ?? 0} {vault.itemCount === 1 ? 'item' : "items"}
                       </Typography>
                     </Box>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>

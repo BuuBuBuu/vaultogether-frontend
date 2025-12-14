@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import useAuth from "../../hooks/useAuth";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Box,
   Button,
@@ -15,6 +15,7 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import KeyIcon from '@mui/icons-material/Key';
+import { getValidationErrorMessage } from '../../utils/errorHandler';
 
 const RegisterForm = () => {
   // TODO: Create state for email and password
@@ -25,6 +26,19 @@ const RegisterForm = () => {
   const [error, setError] = useState('');
   const {register} = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // useEffect for the return from password generator
+  useEffect(() => {
+    // Check return from password generator
+    if (location.state?.generatedPassword) {
+      setPassword(location.state?.generatedPassword);
+      setConfirmPassword(location.state?.generatedPassword);
+      if (location.state?.formData) {
+        setEmail(location.state?.formData);
+      }
+    }
+  }, [location.state]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -35,44 +49,23 @@ const RegisterForm = () => {
       return;
     }
 
-    // Call register logic from AuthContext
-    const result = await register({ email, password });
-
-    // Check if registration was successful
-    if (result && result.email) {
+    try {
+      // Call register logic from AuthContext
+      await register({ email, password });
       // Navigate to login page after successful registration
       navigate('/');
-    } else {
-      console.log(result);
-      // display err message
-      setError("Registration failed. Please try again.");
+    } catch (error) {
+      const validationMsg = getValidationErrorMessage(error);
+      if (validationMsg) {
+        // set the message to error usestate
+        setError(validationMsg);
+      } else {
+        setError("Registration failed. Please try again.");
+      }
     }
   };
 
   return (
-    // <>
-    //   <Container component="main" maxWidth="xs">
-    //     <Paper elevation={3} sx={{ p: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-    //       <Typography component={"h1"} variant='h5'>
-    //         Register
-    //       </Typography>
-
-    //       <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
-    //         <TextField margin="normal" required fullWidth label="Email Address" autoFocus
-    //           value={email} onChange={(e) => setEmail(e.target.value)} />
-    //         <TextField margin="normal" required fullWidth label="Password" type="password"
-    //           value={password} onChange={(e) => setPassword(e.target.value)} />
-    //         <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
-    //           Sign Up
-    //         </Button>
-    //         <Button fullWidth variant="contained" sx={{ mt: 1, mb: 2 }} onClick={() => navigate("/")}>
-    //           Back to Login
-    //         </Button>
-    //       </Box>
-    //     </Paper>
-    //   </Container>
-    // </>
-
     <Box
       sx={{
         height: '100vh',
@@ -120,6 +113,11 @@ const RegisterForm = () => {
                 required
                 variant="outlined"
                 autoFocus
+                slotProps={{
+                  htmlInput: {
+                    maxLength: 255
+                  }
+                }}
               />
             </Box>
 
@@ -148,6 +146,10 @@ const RegisterForm = () => {
                         </IconButton>
                       </InputAdornment>
                     ),
+                  },
+                  htmlInput: {
+                    maxLength: 128,
+                    minLength: 8,
                   }
                 }}
               />
@@ -165,6 +167,12 @@ const RegisterForm = () => {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 variant="outlined"
+                slotProps={{
+                  htmlInput: {
+                    maxLength: 128,
+                    minLength: 8,
+                  }
+                }}
               />
             </Box>
 
@@ -219,6 +227,13 @@ const RegisterForm = () => {
         <Box sx={{ mt: 2, textAlign: 'center' }}>
            <Button
             startIcon={<KeyIcon />}
+            onClick={() => navigate('/password-generator', {
+              state: {
+                returnTo: "/register",
+                formData : email,
+                editingId: null,
+              }
+            })}
             sx={{
               fontSize: '13px',
               color: 'text.secondary',

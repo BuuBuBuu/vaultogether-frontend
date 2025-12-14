@@ -16,6 +16,7 @@ import {
   MenuItem,
   FormControl,
   Card,
+  Alert,
 } from '@mui/material';
 
 import useAuth from '../hooks/useAuth';
@@ -35,6 +36,7 @@ import ShieldIcon from '@mui/icons-material/Shield';
 import CrownIcon from '@mui/icons-material/WorkspacePremium';
 import EditIcon from '@mui/icons-material/Edit';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import { getValidationErrorMessage } from '../utils/errorHandler';
 
 // =============== Vault Members Page ===============
 const VaultMembersPage = () => {
@@ -47,7 +49,7 @@ const VaultMembersPage = () => {
     email: "",
     role: "VIEWER",
   });
-
+  const [memberError, setMemberError] = useState("");
   const { id } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -106,8 +108,13 @@ const VaultMembersPage = () => {
       setNewMember({ email: "", role: "VIEWER" });
       setShowAddForm(false);
     } catch (error) {
-      console.error("Failed to add member:", error);
-      alert(error.response?.data || "Failed to add member");
+      const validationMsg = getValidationErrorMessage(error);
+      if (validationMsg) {
+        setMemberError(validationMsg);
+      } else {
+        console.error("Failed to add member:", error);
+        setMemberError(error.response?.data || "Failed to add member");
+      }
     }
   };
 
@@ -117,8 +124,13 @@ const VaultMembersPage = () => {
       const updatedMembers = await getVaultMembers(user.userId, id);
       setMembers(updatedMembers || []);
     } catch (error) {
-      console.error("Failed to update role:", error);
-      alert(error.response?.data || "Failed to update role");
+      const validationMsg = getValidationErrorMessage(error);
+      if (validationMsg) {
+        setMemberError(validationMsg);
+      } else {
+        console.error("Failed to add member:", error);
+        setMemberError(error.response?.data || "Failed to add member");
+      }
     }
   };
 
@@ -412,6 +424,7 @@ const VaultMembersPage = () => {
                     onClick={() => {
                       setShowAddForm(false);
                       setNewMember({ email: '', role: 'VIEWER' });
+                      setMemberError('');
                     }}
                     sx={{
                       fontFamily: 'Fira Mono, monospace',
@@ -422,6 +435,21 @@ const VaultMembersPage = () => {
                     Cancel
                   </Button>
                 </Box>
+
+                {memberError && (
+                  <Alert
+                    severity="error"
+                    onClose={() => setMemberError('')}
+                    sx={{
+                      mb: 3,
+                      borderRadius: 0,
+                      border: '2px solid #d32f2f',
+                      fontFamily: 'Fira Mono, monospace'
+                    }}
+                  >
+                    {memberError}
+                  </Alert>
+                )}
 
                 <Stack spacing={3}>
                   <Box>

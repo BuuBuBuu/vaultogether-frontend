@@ -15,6 +15,7 @@ import {
   Stack,
   InputLabel,
   Input,
+  Alert,
 } from "@mui/material";
 
 import useAuth from "../hooks/useAuth";
@@ -25,6 +26,7 @@ import {
   updateVaultItem,
   getVaultById,
 } from "../services/api";
+import AppBarHeader from "../components/AppBarHeader";
 
 // =============== Import Icons ===============
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -38,6 +40,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import CheckIcon from "@mui/icons-material/Check";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import SecurityIcon from "@mui/icons-material/Security";
+import { getValidationErrorMessage } from "../utils/errorHandler";
 
 // =============== VaultPage ===============
 const VaultPage = () => {
@@ -54,6 +57,7 @@ const VaultPage = () => {
   });
   const [visiblePasswords, setVisiblePasswords] = useState(new Set());
   const [copiedId, setCopiedId] = useState(null);
+  const [formError, setFormError] = useState("");
   const [vaultName, setVaultName] = useState("Vault");
   const [vaultDescription, setVaultDescription] = useState("");
   const [userRole, setUserRole] = useState(null);
@@ -61,6 +65,8 @@ const VaultPage = () => {
   const { id } = useParams();
   // calling useAuth
   const { user, logout } = useAuth();
+  // search state
+  const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -113,6 +119,12 @@ const VaultPage = () => {
     }
   }, [location.state])
 
+
+  // ============== Search to filter the items ===============
+  const filteredItems = searchQuery
+    ? items.filter(item => item.title.toLowerCase().includes(searchQuery.toLowerCase()))
+    : items;
+
   // ============== Form Handlers ===============
   const handleLogout = () => {
     logout();
@@ -148,7 +160,13 @@ const VaultPage = () => {
       }
       resetForm();
     } catch (error) {
-      console.error("Failed to save item:", error);
+      const validationMsg = getValidationErrorMessage(error);
+      if (validationMsg) {
+        setFormError(validationMsg);
+      } else {
+        console.error("Create Failed", error);
+        setFormError("Failed to create Vault Item. Please try again.");
+      }
     }
   };
 
@@ -156,6 +174,7 @@ const VaultPage = () => {
     setFormData({ title: "", type: "", username: "", password: "", notes: "" });
     setShowForm(false);
     setEditingId(null);
+    setFormError('');
   };
 
   const handleEdit = (item) => {
@@ -210,61 +229,16 @@ const VaultPage = () => {
 
   return (
     <Box sx={{ flexGrow: 1, minHeight: "100vh", bgcolor: "#ffffff" }}>
-      {/* Brutalist Header */}
-      <AppBar
-        position="static"
-        color="transparent"
-        elevation={0}
-        sx={{ borderBottom: "2px solid #d9d9d9" }}
+      {/* Use our own AppBarHeader component here! */}
+      <AppBarHeader
+        title={vaultName}
+        subtitle={`${items.length} ${items.length === 1 ? "item" : "items"}`}
+        onBack={() => navigate("/dashboard")}
+        searchValue={searchQuery}
+        onSearchChange={(e) => setSearchQuery(e.target.value)}
+        showSearch={true}
       >
-        <Toolbar
-          sx={{
-            height: 80,
-            maxWidth: "lg",
-            mx: "auto",
-            width: "100%",
-            px: { xs: 2, md: 4 },
-          }}
-        >
-          <IconButton
-            onClick={() => navigate("/dashboard")}
-            sx={{
-              mr: 2,
-              color: "text.primary",
-              "&:hover": { bgcolor: "#f5f5f5" },
-            }}
-          >
-            <ArrowBackIcon />
-          </IconButton>
-
-          <Box
-            sx={{ display: "flex", alignItems: "center", gap: 2, flexGrow: 1 }}
-          >
-            <LockOutlinedIcon sx={{ fontSize: 28 }} />
-            <Box>
-              <Typography
-                variant="h5"
-                sx={{
-                  fontWeight: 400,
-                  fontFamily: "Fira Mono, monospace",
-                  lineHeight: 1.2,
-                }}
-              >
-                {vaultName}
-              </Typography>
-              <Typography
-                variant="caption"
-                sx={{
-                  fontFamily: "Fira Mono, monospace",
-                  color: "text.secondary",
-                }}
-              >
-                {items.length} {items.length === 1 ? "item" : "items"}
-              </Typography>
-            </Box>
-          </Box>
-        </Toolbar>
-      </AppBar>
+      </AppBarHeader>
 
       {/* Main Content */}
       <Container maxWidth="lg" sx={{ mt: 6, mb: 6 }}>
@@ -331,6 +305,21 @@ const VaultPage = () => {
                   </Button>
                 </Box>
 
+                {formError && (
+                  <Alert
+                    severity="error"
+                    onClose={() => setFormError('')}
+                    sx={{
+                      mb: 3,
+                      borderRadius: 0,
+                      border: '2px solid #d32f2f',
+                      fontFamily: 'Fira Mono, monospace'
+                    }}
+                  >
+                    {formError}
+                  </Alert>
+                )}
+
                 <Stack spacing={3}>
                   <Box>
                     <InputLabel
@@ -354,6 +343,9 @@ const VaultPage = () => {
                       disableUnderline
                       required
                       autoFocus
+                      inputProps={{
+                        maxLength: 100
+                      }}
                       placeholder="e.g., GitHub, Netflix, Gmail"
                       sx={{
                         border: "2px solid #d9d9d9",
@@ -365,6 +357,17 @@ const VaultPage = () => {
                         },
                       }}
                     />
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        fontFamily: 'Fira Mono, monospace',
+                        color: formData.title.length > 100 ? 'error.main' : 'text.secondary',
+                        mt: 0.5,
+                        display: "block",
+                      }}
+                    >
+                      {formData.title.length}/100 characters
+                    </Typography>
                   </Box>
 
                   <Box>
@@ -387,6 +390,9 @@ const VaultPage = () => {
                       }
                       fullWidth
                       disableUnderline
+                      inputProps={{
+                        maxLength: 16
+                      }}
                       placeholder="e.g., Login, API Key, SSH"
                       sx={{
                         border: "2px solid #d9d9d9",
@@ -398,6 +404,17 @@ const VaultPage = () => {
                         },
                       }}
                     />
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        fontFamily: 'Fira Mono, monospace',
+                        color: formData.type.length > 16 ? 'error.main' : 'text.secondary',
+                        mt: 0.5,
+                        display: "block",
+                      }}
+                    >
+                      {formData.type.length}/16 characters
+                    </Typography>
                   </Box>
 
                   <Box>
@@ -432,6 +449,17 @@ const VaultPage = () => {
                         },
                       }}
                     />
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        fontFamily: 'Fira Mono, monospace',
+                        color: 'text.secondary',
+                        mt: 0.5,
+                        display: "block",
+                      }}
+                    >
+                      No Character Limit but {formData.username.length} characters so far...
+                    </Typography>
                   </Box>
 
                   <Box>
@@ -493,6 +521,17 @@ const VaultPage = () => {
                         <KeyIcon sx={{ fontSize: 18 }} />
                       </Button>
                     </Box>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        fontFamily: 'Fira Mono, monospace',
+                        color: 'text.secondary',
+                        mt: 0.5,
+                        display: "block",
+                      }}
+                    >
+                      No Character Limit but {formData.password.length} so far...FYI if you use the password generation feature the password gets saved here auto! Click Key Icon
+                    </Typography>
                   </Box>
 
                   <Box>
@@ -580,7 +619,7 @@ const VaultPage = () => {
           </Box>
         ) : (
           <Stack spacing={2}>
-            {items.map((item) => (
+            {filteredItems.map((item) => (
               <Card
                 key={item.itemId}
                 sx={{
@@ -726,7 +765,7 @@ const VaultPage = () => {
                     sx={{
                       pt: 2,
                       borderTop: "1px solid #e5e5e5",
-                      mb: 2,
+                      mb: 1,
                     }}
                   >
                     <Typography
@@ -755,12 +794,12 @@ const VaultPage = () => {
                 >
                   {item.createdAt && (
                     <span>
-                      Created: {new Date(item.createdAt).toLocaleDateString()}
+                      Created: {new Date(item.createdAt).toLocaleString()}
                     </span>
                   )}
                   {item.updatedAt && item.updatedAt !== item.createdAt && (
                     <span>
-                      Updated: {new Date(item.updatedAt).toLocaleDateString()}
+                      Updated: {new Date(item.updatedAt).toLocaleString()}
                     </span>
                   )}
                   {item.type && <span>Type: {item.type}</span>}

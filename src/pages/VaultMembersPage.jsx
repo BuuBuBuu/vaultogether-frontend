@@ -244,57 +244,7 @@ const VaultMembersPage = () => {
       </AppBar>
 
       {/* Main Content */}
-      <Container maxWidth="md" sx={{ mt: 6, mb: 6}}>
-        {/* Role Legend */}
-        {/* <Box
-          sx={{
-            mb: 6,
-            p: 3,
-            border: '2px solid #d9d9d9',
-            borderRadius: 0,
-            bgcolor: '#fafafa',
-          }}
-        >
-          <Typography
-            sx={{
-              fontFamily: 'Fira Mono, monospace',
-              fontSize: '13px',
-              mb: 2,
-            }}
-          >
-            Access Levels:
-          </Typography>
-          <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
-            {['OWNER', 'EDITOR', 'VIEWER'].map((role) => (
-              <Box key={role} sx={{ display: 'flex', alignItems: 'start', gap: 1.5 }}>
-                <Box sx={{ mt: 0.5, color: getRoleColor(role) }}>
-                  {getRoleIcon(role)}
-                </Box>
-                <Box>
-                  <Typography
-                    sx={{
-                      fontFamily: 'Fira Mono, monospace',
-                      fontSize: '12px',
-                      textTransform: 'capitalize',
-                    }}
-                  >
-                    {role.toLowerCase()}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontFamily: 'Fira Mono, monospace',
-                      fontSize: '10px',
-                      color: 'text.secondary',
-                    }}
-                  >
-                    {getRoleDescription(role)}
-                  </Typography>
-                </Box>
-              </Box>
-            ))}
-          </Stack>
-        </Box> */}
-
+      <Container maxWidth="md" sx={{ mt: 6, mb: 6 }}>
         {/* Role Legend */}
         <Box
           sx={{

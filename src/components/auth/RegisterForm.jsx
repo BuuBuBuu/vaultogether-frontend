@@ -257,9 +257,11 @@ const RegisterForm = () => {
           sx={{ mt: 4, p: 2, textAlign: 'center', bgcolor: 'transparent' }}
         >
           <Typography variant="caption" color="text.secondary" sx={{ fontSize: '11px', lineHeight: 1.6, display: 'block' }}>
-            🔒 Secured with Argon2id password hashing<br/>
-            🔐 AES-GCM encryption at rest<br/>
-            🛡️ JWT-based stateless authentication
+            🔒 Secured with Basic Login only
+            <br/>
+            🔐 Zero encryption at rest
+            <br/>
+            🛡️ JWT-based stateless authentication (Not)
           </Typography>
         </Paper>
 

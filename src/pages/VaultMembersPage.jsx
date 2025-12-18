@@ -1,3 +1,7 @@
+// This component manages the members of a specific vault.
+// allows vault owners to add new members, update existing members roles and remove them.
+// display list of all member with their roles and provides a legend for different access levels
+
 // =============== Imports ===============
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -41,19 +45,21 @@ import { getValidationErrorMessage } from '../utils/errorHandler';
 // =============== Vault Members Page ===============
 const VaultMembersPage = () => {
   // =============== States ===============
-  const [members, setMembers] = useState([]);
-  const [vaultName, setVaultName] = useState("Vault");
-  const [userRole, setUserRole] = useState(null);
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [newMember, setNewMember] = useState({
+  const [members, setMembers] = useState([]); // store list of vault members
+  const [vaultName, setVaultName] = useState("Vault"); // store vault name
+  const [userRole, setUserRole] = useState(null); // store current user's role in the vault
+  const [showAddForm, setShowAddForm] = useState(false); // control visibility of the add member form
+  const [newMember, setNewMember] = useState({ // state for the new member form inputs
     email: "",
-    role: "VIEWER",
+    role: "VIEWER", // default role for new members
   });
-  const [memberError, setMemberError] = useState("");
-  const { id } = useParams();
-  const { user } = useAuth();
-  const navigate = useNavigate();
+  const [memberError, setMemberError] = useState(""); // stores error messages related to member ops
+  // =============== Hooks ===============
+  const { id } = useParams(); // extract the id (vaultId) from the URL
+  const { user } = useAuth(); // get the current logged-in user's global info
+  const navigate = useNavigate(); // func for navigation
 
+  // Derived state: A boolean to check if the current user is the owner of this vault
   const isOwner = userRole === "OWNER";
 
   // =============== useEffect ===============
@@ -63,14 +69,20 @@ const VaultMembersPage = () => {
       // Also if there is no id (vault) then exit
       if (user?.userId != null && id) {
         try {
-          // Fetch vault details call api method
+          // Fetch vault details call api method to get vault name and the current user's role in it
           const vaultData = await getVaultById(user.userId, id);
           setVaultName(vaultData.name);
-          setUserRole(vaultData.role);
+          setUserRole(vaultData.role); // set the role of the logged-in user for this vault
 
-          // Fetch members
+          // Fetch the list of all members for this vault
           const membersData = await getVaultMembers(user.userId, id);
-          setMembers(membersData || []);
+          if (membersData) {
+            // If got data use it
+            setMembers(membersData);
+          } else {
+            // if data is null set empty list
+            setMembers([]);
+          }
         } catch (error) {
           console.error("Failed to fetch data:", error);
         }
@@ -80,15 +92,16 @@ const VaultMembersPage = () => {
   }, [user, id]);
 
   // =============== Handlers ===============
+  // Handle add new member to the vault
   const handleAddMember = async (e) => {
-    e.preventDefault();
+    e.preventDefault(); // prevent default form submission behavior
 
+    // have guard clauses for user login and empty email
     if (!user || !user.userId) {
       console.error("User not logged in");
-      navigate("/");
+      navigate("/"); // redirect
       return;
     }
-
     if (!newMember.email.trim()) {
       return;
     }
@@ -118,11 +131,13 @@ const VaultMembersPage = () => {
     }
   };
 
+  // handle updating member's role within the vault
   const handleRoleUpdate = async (email, newRole) => {
     try {
-      await updateVaultMemberRole(user.userId, id, email, newRole);
-      const updatedMembers = await getVaultMembers(user.userId, id);
+      await updateVaultMemberRole(user.userId, id, email, newRole); // call api
+      const updatedMembers = await getVaultMembers(user.userId, id); // fetch updated members
       setMembers(updatedMembers || []);
+      setMemberError("");
     } catch (error) {
       const validationMsg = getValidationErrorMessage(error);
       if (validationMsg) {
@@ -134,13 +149,15 @@ const VaultMembersPage = () => {
     }
   };
 
+  // handle removing a member from the vault
   const handleRemoveMember = async (email, memberEmail) => {
     if (!window.confirm(`Remove ${memberEmail} from this vault?`)) return;
 
     try {
-      await deleteVaultMember(user.userId, id, email);
-      const updatedMembers = await getVaultMembers(user.userId, id);
+      await deleteVaultMember(user.userId, id, email); //call api
+      const updatedMembers = await getVaultMembers(user.userId, id); // fetch updated members
       setMembers(updatedMembers || []);
+      setMemberError("");
     } catch (error) {
       console.error("Failed to remove member:", error);
       alert(error.response?.data || "Failed to remove member");

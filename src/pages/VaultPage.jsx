@@ -59,12 +59,13 @@ const VaultPage = () => {
   const [copiedId, setCopiedId] = useState(null);
   const [formError, setFormError] = useState("");
   const [vaultName, setVaultName] = useState("Vault");
-  const [vaultDescription, setVaultDescription] = useState("");
+  // const [vaultDescription, setVaultDescription] = useState("");
   const [userRole, setUserRole] = useState(null);
   // useParams to get the VAULTTT IDDD from the URL forgot this
   const { id } = useParams();
   // calling useAuth
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
+  // const { logout } = useAuth();
   // search state
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
@@ -81,7 +82,7 @@ const VaultPage = () => {
           // Fetch vault details
           const vaultData = await getVaultById(user.userId, id);
           setVaultName(vaultData.name);
-          setVaultDescription(vaultData.description || "");
+          // setVaultDescription(vaultData.description || "");
           setUserRole(vaultData.role);
 
           // Fetch items data
@@ -117,7 +118,7 @@ const VaultPage = () => {
       // Clear the location state
       navigate(location.pathname, { replace: true, state: {} });
     }
-  }, [location.state])
+  }, [location.state, location.pathname, navigate]);
 
 
   // ============== Search to filter the items ===============
@@ -126,10 +127,10 @@ const VaultPage = () => {
     : items;
 
   // ============== Form Handlers ===============
-  const handleLogout = () => {
-    logout();
-    navigate("/");
-  };
+  // const handleLogout = () => {
+  //   logout();
+  //   navigate("/");
+  // };
 
   const handleSubmit = async (e) => {
     e.preventDefault();

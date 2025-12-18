@@ -66,6 +66,12 @@ const RegisterForm = () => {
   };
 
   return (
+    /*
+      use <Box> as outermost component
+        set box height to 100% vertically fill entire screen
+        flex, align to center
+        align to middle horizontally justify center
+    */
     <Box
       sx={{
         height: '100vh',
@@ -75,10 +81,15 @@ const RegisterForm = () => {
         bgcolor: 'background.default'
       }}
     >
+      {/*
+        This box is the direct parent of all of the form's content,
+        makes sure that the width is not too wide horizontally
+      */}
       <Box sx={{ width: '100%', maxWidth: 400, px: 4 }}>
         {/* Header */}
         <Box sx={{ textAlign: 'center', mb: 6 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 1 }}>
+            {/* Lock Icon from MUI */}
             <LockOutlinedIcon sx={{ fontSize: 32 }} />
             <Typography variant="h1" sx={{ fontSize: '40px', fontWeight: 400 }}>
               Vaultogether
@@ -89,7 +100,10 @@ const RegisterForm = () => {
           </Typography>
         </Box>
 
-        {/* Error Alert */}
+        {/*
+          Error Alert provides visual feedback for registration errors
+          renders only if error state variable is truthy
+        */}
         {error && (
           <Alert severity="error" sx={{ mb: 3, borderRadius: 0 }}>
             {error}
@@ -104,6 +118,13 @@ const RegisterForm = () => {
               <Typography component="label" sx={{ display: 'block', mb: 1, fontSize: '15px' }}>
                 Email:
               </Typography>
+              {/*
+                fullWidth makes the text field span the entire width of the parent box
+                value and onChange used together as controlled component pattern
+                  onChange function is called each time the user types, updating state
+                  which in turn causes the component to re-render and display the new val
+
+              */}
               <TextField
                 fullWidth
                 id="email"
@@ -125,6 +146,18 @@ const RegisterForm = () => {
               <Typography component="label" sx={{ display: 'block', mb: 1, fontSize: '15px' }}>
                 Password:
               </Typography>
+              {/*
+                type={showPassword ? 'text' : 'password'} is a dynamic visibility
+                  if showPassword is true show text otherwise password masked
+                value and onChange used together as controlled component pattern
+                  onChange function is called each time the user types, updating state
+                  which in turn causes the component to re-render and display the new val
+                slotProps allows customizing the internal parts.
+                  input adds the IconButton at the end of the textfield
+                    this icon changes also based on the showPassword boolean to diff icons
+                htmlinput targets the raw underlying <input> element and applies
+                standard html attributes for basic length validation in browser.
+              */}
               <TextField
                 fullWidth
                 id="password"
@@ -177,6 +210,13 @@ const RegisterForm = () => {
             </Box>
 
             <Box sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {/*
+                type="submit" critical. tells browser that clicking on this button
+                should trigger the onSubmit event on the parent <form> element which
+                then calls the handlesubmit function
+
+
+              */}
               <Button
                 type="submit"
                 fullWidth
@@ -223,7 +263,17 @@ const RegisterForm = () => {
           </Typography>
         </Paper>
 
-        {/* Password Generator Link */}
+        {/*
+          Password Generator Link
+          this link passes state information to the password generator page so that when
+          coming back here we can use the data to auto fill back the form. so if like
+          user fills in email halfway and press the generate passoword when they come
+          back here it will auto fill for the user and as if they never left.
+          There are only 2 links to password generator one is here and another in the
+          vault item creation form / page. here to return here, we pass in the return to
+          as /register and also the form data here is just the email. no need editingid
+          because item isnt edited so no need to pass back the editing id.
+        */}
         <Box sx={{ mt: 2, textAlign: 'center' }}>
            <Button
             startIcon={<KeyIcon />}

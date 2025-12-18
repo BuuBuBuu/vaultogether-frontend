@@ -1,3 +1,13 @@
+// This component serves as main dashboard after user log in. responsible for:
+// fetching and displaying list of user's vaults
+// allow users to create new vaults via an inline form
+// allow users to delete their own vaults
+// provide searhch functionality to filter vaults by name
+// allow navigation to individual vault pages
+// allow navigation to vault member management pages
+// enable logout
+
+
 import React, { useState, useEffect } from "react";
 import {
   Container,
@@ -52,33 +62,38 @@ const DashboardPage = () => {
   const navigate = useNavigate();
 
   // useEffect to call the getVaultsByUser endpoint
+  // it fetches the user's vaults when the component mounts or when the user object changes
   useEffect(() => {
     const fetchData = async () => {
+      // ensure we only fetch data if a logged-in user exists
       if (user?.userId != null) {
         try {
           const data = await getVaultsByUser(user.userId);
-          setVaults(data);
+          setVaults(data); // Populate the vaults state with fetched data
         } catch (error) {
           console.error("Failed to fetch vaults:", error);
         }
       }
     };
     fetchData();
-  }, [user]);
+  }, [user]); // effect to re run if user object changes
 
+  // handles the logout process
   const handleLogout = () => {
-    logout();
-    navigate("/");
+    logout(); // clears user data from context and loacal storage
+    navigate("/"); // redirect to login page
   };
 
   // Filter vaults for search
+  // if search query is non empty then filter vaults by name
+  // otherwise show all vaults
   const filteredVaults = searchQuery
     ? vaults.filter(vault => vault.name.toLowerCase().includes(searchQuery.toLowerCase()))
     : vaults;
 
   // function to handle new vault creation
   const handleCreateVault = async (e) => {
-    e.preventDefault();
+    e.preventDefault(); // prevent default form submission behavior page reload
 
     // check if the user is logged in
     if (!user || !user.userId) {
@@ -88,14 +103,14 @@ const DashboardPage = () => {
     }
 
     // check whether the newVaultName contains anything
-    if (!newVaultName.trim()) return;
+    if (!newVaultName.trim()) return; // prevent creating vault with empty name
 
     // Call the async function in api called createVault(vaultData, userId)
     // vault data takes in String name, String encryptedStringKey for now use temp key
     const vaultData = {
       name: newVaultName,
       description: newVaultDesc,
-      encryptedStringKey: "TEMP_KEY",
+      encryptedStringKey: "TEMP_KEY", // Placeholder for encryption key
     };
 
     try {
@@ -109,7 +124,7 @@ const DashboardPage = () => {
       setNewVaultName("");
       setNewVaultDesc("");
     } catch (error) {
-      const validationMsg = getValidationErrorMessage(error);
+      const validationMsg = getValidationErrorMessage(error); // extract validation error message if available
       if (validationMsg) {
         setFormError(validationMsg);
       } else {
@@ -121,6 +136,7 @@ const DashboardPage = () => {
 
   // handler function for existing vault deletion
   const handleDeleteVault = async (vaultId) => {
+    // Uses a confirmation dialog to prevent accidental deletions
     if (!window.confirm("Are you sure you want to delete this vault?")) return;
 
     try {
@@ -134,6 +150,8 @@ const DashboardPage = () => {
   };
 
   return (
+    // Main Container
+    // Box used for full height background color
     <Box sx={{ flexGrow: 1, minHeight: "100vh", bgcolor: "#ffffff" }}>
       {/* Use our own AppBarHeader component here! */}
       <AppBarHeader
@@ -163,13 +181,14 @@ const DashboardPage = () => {
           </Button>
         }
       >
-
       </AppBarHeader>
 
       {/* Main Content */}
+      {/* Container to center content and provide horizontal padding */}
       <Container maxWidth="lg" sx={{ mt: 6, mb: 6 }}>
         {/* Create Vault Section (Inline Form) */}
         <Box sx={{ mb: 6 }}>
+          {/* Conditionally render either the Create button or the inline form */}
           {!showCreateForm ? (
             <Button
               fullWidth
@@ -233,6 +252,7 @@ const DashboardPage = () => {
                 </Button>
               </Box>
 
+              {/* Displays error message if formError state is set */}
               {formError && (
                 <Alert
                   severity="error"
@@ -248,6 +268,7 @@ const DashboardPage = () => {
                 </Alert>
               )}
 
+              {/* Form Fields for vault name and description */}
               <Stack spacing={3}>
                 <Box>
                   <InputLabel
@@ -367,7 +388,9 @@ const DashboardPage = () => {
         </Box>
 
         {/* Vaults Grid */}
+        {/* Using MUI Grid to layout vault cards responsively */}
         <Grid container spacing={3}>
+          {/* Display message if there are no vaults to show */}
           {vaults.length === 0 && !showCreateForm && (
             <Grid size={{ xs: 12 }}>
               <Box
@@ -392,6 +415,7 @@ const DashboardPage = () => {
             </Grid>
           )}
 
+          {/* Map through filteredVaults based on search to render a Card for each vault */}
           {filteredVaults.map((vault) => (
             <Grid size={{ xs: 12, md: 6 }} key={vault.vaultId}>
               <Card
